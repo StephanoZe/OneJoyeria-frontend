@@ -1,0 +1,63 @@
+<a class="back" routerLink="/proveedores"><app-icono nombre="volver" /> Proveedores</a>
+
+@if (error()) {
+  <div class="error-box"><strong>No se pudo cargar el proveedor.</strong><br>{{ error() }}</div>
+} @else if (proveedor(); as p) {
+  <div class="page-head">
+    <div>
+      <h1>{{ p.nombre }}</h1>
+      <p>{{ p.ruc ? 'RUC ' + p.ruc : 'Sin RUC registrado' }}@if (p.suministra) {, suministra {{ p.suministra.toLowerCase() }} }</p>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="btn btn-danger" (click)="confirmando.set(true)"><app-icono nombre="borrar" /> Eliminar</button>
+      <a class="btn btn-line" [routerLink]="['/proveedores', p.id, 'editar']"><app-icono nombre="editar" /> Editar</a>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="panel">
+      <h2>Datos de contacto</h2>
+      <dl class="facts" style="margin-top:8px">
+        <div><dt>Persona de contacto</dt><dd>{{ p.contacto || '—' }}</dd></div>
+        <div><dt>Teléfono</dt><dd>
+          @if (p.telefono) { <a [href]="'tel:' + telefonoLimpio(p.telefono)">{{ p.telefono }}</a> } @else { — }
+        </dd></div>
+        <div><dt>Correo</dt><dd>
+          @if (p.email) { <a [href]="'mailto:' + p.email">{{ p.email }}</a> } @else { — }
+        </dd></div>
+        <div><dt>Dirección</dt><dd>{{ p.direccion || '—' }}</dd></div>
+        <div><dt>Registrado</dt><dd>{{ fmt.fecha(p.fechaRegistro) }}</dd></div>
+        <div><dt>Observaciones</dt><dd>{{ p.observaciones || '—' }}</dd></div>
+      </dl>
+    </section>
+    <section class="panel">
+      <h2>Piezas que suministra</h2>
+      <p class="sub">{{ piezas().length }} en el inventario, {{ fmt.num(unidades()) }} unidades</p>
+      @if (piezas().length) {
+        <ul class="restock">
+          @for (x of piezas(); track x.id) {
+            <li>
+              <span class="swatch" [style.--c]="x.colorMaterial"></span>
+              <span class="name">
+                <a [routerLink]="['/inventario', x.codigo]">{{ x.nombre }}</a>
+                <small>{{ x.codigo }}, {{ x.stockActual }} u.</small>
+              </span>
+              <app-estado [estado]="x.estado" />
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="hint" style="margin-top:12px">Ninguna pieza tiene asignado este proveedor. Puedes asignarlo al editar una pieza.</p>
+      }
+    </section>
+  </div>
+
+  @if (confirmando()) {
+    <app-confirmar-dialogo titulo="¿Eliminar este proveedor?" [destacado]="p.nombre"
+      mensaje="dejará de aparecer en la lista y en las piezas que lo tienen asignado."
+      [procesando]="eliminando()" [error]="errorEliminar()"
+      (confirmar)="eliminar()" (cancelar)="confirmando.set(false)" />
+  }
+} @else {
+  <div class="loading">Cargando…</div>
+}

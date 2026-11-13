@@ -1,0 +1,63 @@
+<div class="page-head">
+  <div>
+    <h1>Proveedores</h1>
+    <p>Talleres y distribuidores que abastecen la tienda. Busca por razón social, RUC, contacto o material.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary" routerLink="/proveedores/nuevo"><app-icono nombre="mas" /> Registrar proveedor</a>
+  </div>
+</div>
+
+<div class="toolbar">
+  <label class="search">
+    <span class="visually-hidden">Buscar proveedor</span>
+    <app-icono nombre="buscar" />
+    <input #caja type="search" placeholder="Razón social, RUC o contacto" (input)="buscar(caja.value)">
+  </label>
+</div>
+
+<div aria-live="polite">
+  @if (error()) {
+    <div class="error-box">{{ error() }}</div>
+  } @else if (cargando() && !proveedores().length) {
+    <div class="loading">Cargando proveedores…</div>
+  } @else if (!proveedores().length) {
+    <div class="empty">
+      @if (busqueda()) {
+        <h3>Ningún proveedor coincide con “{{ busqueda() }}”</h3>
+        <p>Revisa la ortografía o busca por el RUC.</p>
+      } @else {
+        <h3>Todavía no hay proveedores</h3>
+        <p>Registra al primero para vincularlo a tus piezas.</p>
+        <a class="btn btn-primary" routerLink="/proveedores/nuevo">Registrar proveedor</a>
+      }
+    </div>
+  } @else {
+    <div class="panel panel-flush table-wrap">
+      <table>
+        <thead><tr>
+          <th>Razón social</th><th>RUC</th><th>Contacto</th><th>Teléfono</th><th>Suministra</th>
+          <th><span class="visually-hidden">Acciones</span></th>
+        </tr></thead>
+        <tbody>
+          @for (p of proveedores(); track p.id) {
+            <tr class="clickable" (click)="abrir(p)">
+              <td>
+                <a class="strong" [routerLink]="['/proveedores', p.id]" style="color:inherit" (click)="$event.stopPropagation()">{{ p.nombre }}</a>
+                @if (p.email) { <br><span class="hint">{{ p.email }}</span> }
+              </td>
+              <td class="code">{{ p.ruc || '—' }}</td>
+              <td>{{ p.contacto || '—' }}</td>
+              <td style="white-space:nowrap">{{ p.telefono || '—' }}</td>
+              <td>{{ p.suministra || '—' }}</td>
+              <td class="actions" (click)="$event.stopPropagation()">
+                <a class="icon-btn" [routerLink]="['/proveedores', p.id, 'editar']" title="Editar"
+                   [attr.aria-label]="'Editar ' + p.nombre"><app-icono nombre="editar" /></a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

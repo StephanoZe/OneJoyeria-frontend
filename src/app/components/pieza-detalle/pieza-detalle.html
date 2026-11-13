@@ -1,0 +1,87 @@
+<a class="back" routerLink="/inventario"><app-icono nombre="volver" /> Inventario</a>
+
+@if (error()) {
+  <div class="error-box"><strong>No se pudo cargar la pieza.</strong><br>{{ error() }}</div>
+} @else if (pieza(); as p) {
+  <div class="page-head">
+    <div class="title-row">
+      <span class="swatch lg" [style.--c]="p.colorMaterial" aria-hidden="true"></span>
+      <div><h1>{{ p.nombre }}</h1><p>{{ p.codigo }}, {{ p.categoria }} en {{ p.material }}</p></div>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="btn btn-danger" (click)="confirmando.set(true)"><app-icono nombre="borrar" /> Eliminar</button>
+      <a class="btn btn-line" [routerLink]="['/inventario', p.codigo, 'editar']"><app-icono nombre="editar" /> Editar</a>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="panel">
+      <h2>Ficha</h2>
+      @if (p.descripcion) { <p class="sub" style="margin-bottom:12px">{{ p.descripcion }}</p> }
+      <dl class="facts">
+        <div><dt>Precio de venta</dt><dd>{{ fmt.solesExactos(p.precio) }}</dd></div>
+        <div><dt>Valor en stock</dt><dd>{{ fmt.solesExactos(p.valorTotal) }}</dd></div>
+        <div><dt>Categoría</dt><dd>{{ p.categoria }}</dd></div>
+        <div><dt>Material</dt><dd>{{ p.material }}</dd></div>
+        <div><dt>Proveedor</dt><dd>
+          @if (p.proveedorId) { <a [routerLink]="['/proveedores', p.proveedorId]">{{ p.proveedor }}</a> }
+          @else { Sin proveedor asignado }
+        </dd></div>
+        <div><dt>Registrada</dt><dd>{{ fmt.fecha(p.fechaRegistro) }}</dd></div>
+      </dl>
+    </section>
+    <section class="panel">
+      <h2>Stock</h2>
+      <div class="big-stock"><b>{{ p.stockActual }}</b><span>unidades</span></div>
+      <p style="margin-bottom:16px">
+        <app-estado [estado]="p.estado" />
+        <span class="hint" style="margin-left:6px">Mínimo {{ p.stockMinimo }}@if (faltan() >= 0) {, conviene reponer {{ faltan() + p.stockMinimo }} }</span>
+      </p>
+      <div class="page-actions">
+        <button type="button" class="btn btn-primary" (click)="dialogoTipo.set('Entrada')">Registrar entrada</button>
+        <button type="button" class="btn btn-line" [disabled]="p.stockActual === 0" (click)="dialogoTipo.set('Salida')">Registrar salida</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Historial de movimientos</h2>
+      <span class="hint">{{ historial().length }} registro{{ historial().length === 1 ? '' : 's' }}</span>
+    </div>
+    <div class="panel panel-flush table-wrap">
+      @if (historial().length) {
+        <table>
+          <thead><tr><th>Fecha</th><th>Tipo</th><th class="num">Cantidad</th><th class="num">Stock</th><th>Responsable</th><th>Observaciones</th></tr></thead>
+          <tbody>
+            @for (m of historial(); track m.id) {
+              <tr>
+                <td>{{ fmt.fechaHora(m.fechaMovimiento) }}</td>
+                <td><app-tipo-movimiento [tipo]="m.tipoMovimiento" /></td>
+                <td class="num">{{ m.cantidad }}</td>
+                <td class="num">{{ m.stockAnterior }} a <strong>{{ m.stockNuevo }}</strong></td>
+                <td>{{ m.responsable || '—' }}</td>
+                <td>{{ m.observaciones }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty">Esta pieza todavía no tiene movimientos.</div>
+      }
+    </div>
+  </section>
+
+  @if (dialogoTipo(); as tipo) {
+    <app-movimiento-dialogo [pieza]="p" [tipoInicial]="tipo" [sugerida]="sugerida()"
+      (registrado)="movimientoRegistrado()" (cerrado)="dialogoTipo.set(null)" />
+  }
+  @if (confirmando()) {
+    <app-confirmar-dialogo titulo="¿Eliminar esta pieza?" [destacado]="p.nombre"
+      mensaje="dejará de aparecer en el inventario. Su historial se conserva."
+      [procesando]="eliminando()" [error]="errorEliminar()"
+      (confirmar)="eliminar()" (cancelar)="confirmando.set(false)" />
+  }
+} @else {
+  <div class="loading">Cargando…</div>
+}

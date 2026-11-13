@@ -1,0 +1,48 @@
+<dialog #dlg (cancel)="$event.preventDefault(); cerrado.emit()">
+  <form (submit)="$event.preventDefault(); registrar()" novalidate>
+    <div class="dialog-head">
+      <h2>Registrar movimiento</h2>
+      <p>{{ pieza().nombre }} <span class="code">{{ pieza().codigo }}</span></p>
+    </div>
+
+    <div class="dialog-body">
+      @if (error()) { <div class="form-error">{{ error() }}</div> }
+
+      <div class="segmented" role="radiogroup" aria-label="Tipo de movimiento">
+        <input type="radio" name="tipo" id="mv-entrada" [checked]="tipo() === 'Entrada'" (change)="tipo.set('Entrada')">
+        <label for="mv-entrada" class="entrada">Entrada</label>
+        <input type="radio" name="tipo" id="mv-salida" [checked]="tipo() === 'Salida'" (change)="tipo.set('Salida')">
+        <label for="mv-salida" class="salida">Salida</label>
+      </div>
+
+      <div class="field">
+        <label for="mv-cantidad">Cantidad</label>
+        <input #cantidadInput type="number" id="mv-cantidad" min="1" max="9999" step="1"
+               [value]="cantidad()" (input)="leerCantidad(cantidadInput.value)">
+      </div>
+
+      <div>
+        <div class="preview" aria-live="polite">
+          <span>{{ pieza().stockActual }}</span><span class="arrow">a</span>
+          <span class="after {{ claseResultado() }}">{{ resultado() }}</span>
+        </div>
+        <p class="preview-note" [class.bad]="invalido()">{{ nota() }}</p>
+      </div>
+
+      <div class="field">
+        <label for="mv-responsable">Responsable</label>
+        <input #resp type="text" id="mv-responsable" maxlength="150" [value]="responsable()" (input)="responsable.set(resp.value)">
+      </div>
+      <div class="field">
+        <label for="mv-obs">Observaciones <span class="opt">(opcional)</span></label>
+        <input #obs type="text" id="mv-obs" maxlength="500" placeholder="Venta en tienda, reposición del proveedor…"
+               [value]="observaciones()" (input)="observaciones.set(obs.value)">
+      </div>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-line" (click)="cerrado.emit()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="invalido() || enviando()">Registrar</button>
+    </div>
+  </form>
+</dialog>

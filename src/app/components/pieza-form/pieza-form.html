@@ -1,0 +1,84 @@
+@if (codigoOriginal) {
+  <a class="back" [routerLink]="['/inventario', codigoOriginal]"><app-icono nombre="volver" /> {{ nombreOriginal || 'Pieza' }}</a>
+} @else {
+  <a class="back" routerLink="/inventario"><app-icono nombre="volver" /> Inventario</a>
+}
+
+<div class="page-head">
+  <div>
+    <h1>{{ codigoOriginal ? 'Editar pieza' : 'Registrar pieza' }}</h1>
+    <p>
+      @if (codigoOriginal) { Los cambios de stock se hacen con entradas y salidas, para que quede registro de cada uno. }
+      @else { Si dejas el código vacío, el sistema asigna el siguiente disponible. }
+    </p>
+  </div>
+</div>
+
+@if (cargando()) {
+  <div class="loading">Cargando…</div>
+} @else {
+  <form class="panel form-panel" (ngSubmit)="guardar()" novalidate>
+    @if (error()) { <div class="form-error">{{ error() }}</div> }
+    <div class="form-grid">
+      <div class="field full" [class.has-error]="falta('nombre')">
+        <label for="f-nombre">Nombre de la pieza</label>
+        <input type="text" id="f-nombre" name="nombre" maxlength="200" placeholder="Anillo solitario oro 18k" [(ngModel)]="form.nombre">
+        @if (falta('nombre')) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field">
+        <label for="f-codigo">Código @if (!codigoOriginal) {<span class="opt">(opcional)</span>}</label>
+        <input type="text" id="f-codigo" name="codigo" maxlength="30" placeholder="JOY-021" style="text-transform:uppercase" [(ngModel)]="form.codigo">
+      </div>
+      <div class="field" [class.has-error]="falta('precio')">
+        <label for="f-precio">Precio de venta</label>
+        <div class="prefix"><span>S/</span><input type="number" id="f-precio" name="precio" min="0.01" step="0.01" [(ngModel)]="form.precio"></div>
+        @if (falta('precio')) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field" [class.has-error]="falta('categoriaId')">
+        <label for="f-categoria">Tipo de joya</label>
+        <select id="f-categoria" name="categoriaId" [(ngModel)]="form.categoriaId">
+          <option [ngValue]="null">Selecciona…</option>
+          @for (c of categorias(); track c.id) { <option [ngValue]="c.id">{{ c.nombre }}</option> }
+        </select>
+        @if (falta('categoriaId')) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field" [class.has-error]="falta('materialId')">
+        <label for="f-material">Material</label>
+        <select id="f-material" name="materialId" [(ngModel)]="form.materialId">
+          <option [ngValue]="null">Selecciona…</option>
+          @for (m of materiales(); track m.id) { <option [ngValue]="m.id">{{ m.nombre }}</option> }
+        </select>
+        @if (falta('materialId')) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field">
+        <label for="f-stock">{{ codigoOriginal ? 'Stock actual' : 'Stock inicial' }}</label>
+        <input type="number" id="f-stock" name="stockActual" min="0" max="9999" step="1" [(ngModel)]="form.stockActual" [disabled]="!!codigoOriginal">
+        <small>{{ codigoOriginal ? 'Usa “Registrar entrada” o “Registrar salida” en la ficha.' : 'Se registra como la primera entrada.' }}</small>
+      </div>
+      <div class="field" [class.has-error]="falta('stockMinimo')">
+        <label for="f-minimo">Stock mínimo</label>
+        <input type="number" id="f-minimo" name="stockMinimo" min="0" max="9999" step="1" [(ngModel)]="form.stockMinimo">
+        <small>Por debajo de este número la pieza aparece en Alertas.</small>
+      </div>
+      <div class="field full">
+        <label for="f-proveedor">Proveedor <span class="opt">(opcional)</span></label>
+        <select id="f-proveedor" name="proveedorId" [(ngModel)]="form.proveedorId">
+          <option [ngValue]="null">Sin proveedor</option>
+          @for (p of proveedores(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
+        </select>
+      </div>
+      <div class="field full">
+        <label for="f-desc">Descripción <span class="opt">(opcional)</span></label>
+        <textarea id="f-desc" name="descripcion" maxlength="500" [(ngModel)]="form.descripcion"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ codigoOriginal ? 'Guardar cambios' : 'Registrar pieza' }}</button>
+      @if (codigoOriginal) {
+        <a class="btn btn-line" [routerLink]="['/inventario', codigoOriginal]">Cancelar</a>
+      } @else {
+        <a class="btn btn-line" routerLink="/inventario">Cancelar</a>
+      }
+    </div>
+  </form>
+}

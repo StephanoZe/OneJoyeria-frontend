@@ -1,0 +1,42 @@
+<div class="login">
+  <section class="login-art">
+    <div class="brand"><img src="logo.svg" alt=""><span class="brand-name">One Joyería</span></div>
+    <div>
+      <h1>Cada pieza de la vitrina, contada.</h1>
+      <p>Control de inventario para la joyería: stock por tipo de joya, entradas y salidas con responsable, alertas de reposición y reportes.</p>
+    </div>
+    <!-- Ilustración: anillo solitario en trazo fino -->
+    <svg class="ring" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#F3E2B3"/><stop offset=".5" stop-color="#C9A13B"/><stop offset="1" stop-color="#8A6524"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="200" cy="250" rx="130" ry="120" stroke="url(#oro)" stroke-width="14"/>
+      <ellipse cx="200" cy="250" rx="112" ry="102" stroke="#E9D9B5" stroke-opacity=".25" stroke-width="1.5"/>
+      <path d="M168 134 L200 152 L232 134" stroke="url(#oro)" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M156 70 H244 L268 96 L200 152 L132 96 Z" fill="#E9D9B5" fill-opacity=".14" stroke="url(#oro)" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M132 96 H268 M178 70 L166 96 L200 152 L234 96 L222 70 M166 96 L200 70 L234 96" stroke="#E9D9B5" stroke-opacity=".55" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+  </section>
+
+  <section class="login-form">
+    <form (ngSubmit)="entrar()" novalidate>
+      <h2>Iniciar sesión</h2>
+      <p class="hint">Ingresa con la cuenta de administrador.</p>
+      @if (error()) { <div class="form-error">{{ error() }}</div> }
+      <div class="field" [class.has-error]="faltan() && !usuario.trim()">
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" autocomplete="username" [(ngModel)]="usuario" autofocus>
+        @if (faltan() && !usuario.trim()) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field" [class.has-error]="faltan() && !contrasena">
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" name="contrasena" autocomplete="current-password" [(ngModel)]="contrasena">
+        @if (faltan() && !contrasena) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ enviando() ? 'Entrando…' : 'Entrar' }}</button>
+      <p class="demo-note">Cuenta de prueba: usuario <code>admin</code>, contraseña <code>admin</code>.</p>
+    </form>
+  </section>
+</div>

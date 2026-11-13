@@ -1,0 +1,56 @@
+<div class="page-head">
+  <div>
+    <h1>Alertas de reposición</h1>
+    <p>Piezas que llegaron a su stock mínimo o se agotaron, de la más urgente a la menos. La cantidad sugerida lleva cada pieza al doble de su mínimo.</p>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="error-box">{{ error() }}</div>
+} @else if (cargando()) {
+  <div class="loading">Cargando…</div>
+} @else if (!alertas().length) {
+  <div class="empty"><h3>Todo en orden</h3><p>Ninguna pieza está por debajo de su stock mínimo.</p></div>
+} @else {
+  @for (s of secciones(); track s.titulo; let primera = $first) {
+    <section [class.section]="!primera">
+      <div class="section-head"><h2>{{ s.titulo }}</h2><span class="hint">{{ s.detalle }}</span></div>
+      <div class="panel panel-flush table-wrap">
+        <table class="fixed">
+          <colgroup>
+            <col style="width:28%"><col style="width:15%"><col style="width:8%"><col style="width:8%">
+            <col style="width:21%"><col style="width:9%"><col style="width:11%">
+          </colgroup>
+          <thead><tr>
+            <th>Pieza</th><th>Material</th><th class="num">Stock</th><th class="num">Mínimo</th><th>Proveedor</th>
+            <th class="num">Sugerido</th><th><span class="visually-hidden">Acciones</span></th>
+          </tr></thead>
+          <tbody>
+            @for (p of s.piezas; track p.id) {
+              <tr>
+                <td><div class="cell-piece"><div>
+                  <a [routerLink]="['/inventario', p.codigo]">{{ p.nombre }}</a>
+                  <small>{{ p.codigo }}, {{ p.categoria }}</small>
+                </div></div></td>
+                <td><app-material [nombre]="p.material" [color]="p.colorMaterial" /></td>
+                <td class="num"><strong>{{ p.stockActual }}</strong></td>
+                <td class="num">{{ p.stockMinimo }}</td>
+                <td>
+                  @if (p.proveedorId) { <a [routerLink]="['/proveedores', p.proveedorId]">{{ p.proveedor }}</a> }
+                  @else { <span class="hint">Sin asignar</span> }
+                </td>
+                <td class="num" title="Lleva la pieza al doble de su mínimo">+{{ sugerida(p) }}</td>
+                <td class="actions"><button type="button" class="btn btn-gold btn-sm" (click)="reponiendo.set(p)">Reponer</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}
+
+@if (reponiendo(); as p) {
+  <app-movimiento-dialogo [pieza]="p" [tipoInicial]="'Entrada'" [sugerida]="sugerida(p)"
+    (registrado)="repuesta()" (cerrado)="reponiendo.set(null)" />
+}

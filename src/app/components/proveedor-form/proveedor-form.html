@@ -1,0 +1,57 @@
+@if (id) {
+  <a class="back" [routerLink]="['/proveedores', id]"><app-icono nombre="volver" /> {{ nombreOriginal || 'Proveedor' }}</a>
+} @else {
+  <a class="back" routerLink="/proveedores"><app-icono nombre="volver" /> Proveedores</a>
+}
+<div class="page-head"><div><h1>{{ id ? 'Editar proveedor' : 'Registrar proveedor' }}</h1></div></div>
+
+@if (cargando()) {
+  <div class="loading">Cargando…</div>
+} @else {
+  <form class="panel form-panel" (ngSubmit)="guardar()" novalidate>
+    @if (error()) { <div class="form-error">{{ error() }}</div> }
+    <div class="form-grid">
+      <div class="field full" [class.has-error]="faltaNombre()">
+        <label for="p-nombre">Razón social o nombre</label>
+        <input type="text" id="p-nombre" name="nombre" maxlength="150" [(ngModel)]="form.nombre">
+        @if (faltaNombre()) { <span class="field-error">Este campo es obligatorio.</span> }
+      </div>
+      <div class="field">
+        <label for="p-ruc">RUC <span class="opt">(opcional)</span></label>
+        <input type="text" id="p-ruc" name="ruc" maxlength="11" inputmode="numeric" placeholder="11 dígitos" [(ngModel)]="form.ruc">
+      </div>
+      <div class="field">
+        <label for="p-contacto">Persona de contacto <span class="opt">(opcional)</span></label>
+        <input type="text" id="p-contacto" name="contacto" maxlength="120" [(ngModel)]="form.contacto">
+      </div>
+      <div class="field">
+        <label for="p-telefono">Teléfono <span class="opt">(opcional)</span></label>
+        <input type="tel" id="p-telefono" name="telefono" maxlength="30" [(ngModel)]="form.telefono">
+      </div>
+      <div class="field">
+        <label for="p-email">Correo electrónico <span class="opt">(opcional)</span></label>
+        <input type="email" id="p-email" name="email" maxlength="120" [(ngModel)]="form.email">
+      </div>
+      <div class="field full">
+        <label for="p-direccion">Dirección <span class="opt">(opcional)</span></label>
+        <input type="text" id="p-direccion" name="direccion" maxlength="250" [(ngModel)]="form.direccion">
+      </div>
+      <div class="field full">
+        <label for="p-suministra">Qué suministra <span class="opt">(opcional)</span></label>
+        <input type="text" id="p-suministra" name="suministra" maxlength="150" placeholder="Oro 18k, plata 925…" [(ngModel)]="form.suministra">
+      </div>
+      <div class="field full">
+        <label for="p-obs">Observaciones <span class="opt">(opcional)</span></label>
+        <textarea id="p-obs" name="observaciones" maxlength="500" [(ngModel)]="form.observaciones"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ id ? 'Guardar cambios' : 'Registrar proveedor' }}</button>
+      @if (id) {
+        <a class="btn btn-line" [routerLink]="['/proveedores', id]">Cancelar</a>
+      } @else {
+        <a class="btn btn-line" routerLink="/proveedores">Cancelar</a>
+      }
+    </div>
+  </form>
+}

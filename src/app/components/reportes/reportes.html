@@ -1,0 +1,67 @@
+<div class="page-head">
+  <div>
+    <h1>Reportes</h1>
+    <p>Entradas y salidas de stock por mes o por rango de fechas y, debajo, el valor actual del inventario. Cada cuadro se descarga por separado en PDF o Excel.</p>
+  </div>
+</div>
+
+<form class="toolbar panel" style="padding:16px 20px; align-items:flex-end" (ngSubmit)="cargar()">
+  <div class="field">
+    <label for="r-mes">Mes</label>
+    <input type="month" id="r-mes" name="mes" [max]="mesActual" [ngModel]="mes" (ngModelChange)="mes = $event; elegirMes()">
+  </div>
+  <div class="field">
+    <label for="r-desde">Desde</label>
+    <input type="date" id="r-desde" name="desde" [ngModel]="desde" (ngModelChange)="desde = $event; fechasManuales()">
+  </div>
+  <div class="field">
+    <label for="r-hasta">Hasta</label>
+    <input type="date" id="r-hasta" name="hasta" [ngModel]="hasta" (ngModelChange)="hasta = $event; fechasManuales()">
+  </div>
+  <div class="field">
+    <label for="r-cat">Tipo de joya</label>
+    <select id="r-cat" name="categoriaId" [ngModel]="categoriaId" (ngModelChange)="categoriaId = $event; cargar()">
+      <option value="">Todas</option>
+      @for (c of categorias(); track c.id) { <option [value]="'' + c.id">{{ c.nombre }}</option> }
+    </select>
+  </div>
+  <button type="submit" class="btn btn-line">Aplicar fechas</button>
+</form>
+
+@if (error()) {
+  <div class="error-box section">{{ error() }}</div>
+}
+
+<section class="section">
+  <div class="section-head">
+    <div><h2>Entradas y salidas</h2><p class="hint">{{ periodo() }}</p></div>
+    <div class="page-actions">
+      <a class="btn btn-line" routerLink="/reporte-imprimir" [queryParams]="pdfMovimientos()" target="_blank" rel="opener">
+        <app-icono nombre="imprimir" /> Exportar PDF
+      </a>
+      <a class="btn btn-primary" [href]="excelMovimientos()"><app-icono nombre="descargar" /> Descargar Excel</a>
+    </div>
+  </div>
+  @if (movimientos(); as lista) {
+    <app-tabla-movimientos [movimientos]="lista" />
+  } @else if (!error()) {
+    <div class="loading">Preparando reporte…</div>
+  }
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div><h2>Inventario valorizado</h2><p class="hint">Stock actual a precio de venta</p></div>
+    <div class="page-actions">
+      <a class="btn btn-line" routerLink="/reporte-imprimir" [queryParams]="pdfInventario()" target="_blank" rel="opener">
+        <app-icono nombre="imprimir" /> Exportar PDF
+      </a>
+      <a class="btn btn-primary" [href]="excelInventario()"><app-icono nombre="descargar" /> Descargar Excel</a>
+    </div>
+  </div>
+  @if (piezas(); as lista) {
+    <app-tabla-inventario [piezas]="lista" />
+  } @else if (!error()) {
+    <div class="loading">Cargando inventario…</div>
+  }
+</section>

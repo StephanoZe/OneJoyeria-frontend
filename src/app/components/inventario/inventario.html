@@ -1,0 +1,110 @@
+<div class="page-head">
+  <div>
+    <h1>Inventario</h1>
+    <p>Todas las piezas de la vitrina, agrupadas por tipo de joya. La línea vertical de cada barra marca el stock mínimo.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary" routerLink="/inventario/nueva"><app-icono nombre="mas" /> Registrar pieza</a>
+  </div>
+</div>
+
+<div class="toolbar">
+  <label class="search">
+    <span class="visually-hidden">Buscar por nombre o código</span>
+    <app-icono nombre="buscar" />
+    <input #caja type="search" placeholder="Buscar por nombre o código" [value]="textoInicial" (input)="buscar(caja.value)">
+  </label>
+  <div class="chips" role="group" aria-label="Filtrar por tipo de joya">
+    <button type="button" class="chip" [attr.aria-pressed]="!categoriaId()" (click)="elegirCategoria('')">Todas</button>
+    @for (c of categorias(); track c.id) {
+      <button type="button" class="chip" [attr.aria-pressed]="categoriaId() === '' + c.id" (click)="elegirCategoria(c.id)">{{ c.nombre }}</button>
+    }
+  </div>
+  <label class="visually-hidden" for="estado">Estado del stock</label>
+  <select #sel id="estado" style="width:auto" (change)="elegirEstado(sel.value)">
+    @for (e of estados; track e.valor) {
+      <option [value]="e.valor" [selected]="e.valor === estado()">{{ e.texto }}</option>
+    }
+  </select>
+</div>
+
+<div aria-live="polite">
+  @if (error()) {
+    <div class="error-box">{{ error() }}</div>
+  } @else if (cargando() && !piezas().length) {
+    <div class="loading">Cargando piezas…</div>
+  } @else if (!piezas().length) {
+    <div class="empty">
+      @if (hayFiltros()) {
+        <h3>Ninguna pieza coincide con estos filtros</h3>
+        <p>Prueba con otro nombre o quita algún filtro.</p>
+        <button type="button" class="btn btn-line" (click)="caja.value = ''; quitarFiltros()">Quitar filtros</button>
+      } @else {
+        <h3>Todavía no hay piezas registradas</h3>
+        <p>Registra la primera pieza para empezar a llevar el stock.</p>
+        <a class="btn btn-primary" routerLink="/inventario/nueva">Registrar pieza</a>
+      }
+    </div>
+  } @else {
+    <p class="hint" style="margin-bottom:18px">{{ piezas().length }} pieza{{ piezas().length === 1 ? '' : 's' }}</p>
+    @for (g of grupos(); track g.categoria.id) {
+      <section class="group">
+        <div class="group-head">
+          <h2>{{ g.categoria.nombre }}</h2>
+          <span>{{ g.piezas.length }} piezas, {{ fmt.num(g.unidades) }} unidades</span>
+        </div>
+        <div class="panel panel-flush table-wrap">
+          <table class="fixed">
+            <colgroup>
+              <col style="width:34%"><col style="width:18%"><col style="width:12%">
+              <col style="width:14%"><col style="width:12%"><col style="width:10%">
+            </colgroup>
+            <thead><tr>
+              <th>Pieza</th><th>Material</th><th class="num">Precio</th><th class="num">Stock</th><th>Estado</th>
+              <th><span class="visually-hidden">Acciones</span></th>
+            </tr></thead>
+            <tbody>
+              @for (p of g.piezas; track p.id) {
+                <tr class="clickable" (click)="abrir(p)">
+                  <td>
+                    <div class="cell-piece"><div>
+                      <a [routerLink]="['/inventario', p.codigo]" (click)="$event.stopPropagation()">{{ p.nombre }}</a>
+                      <small>{{ p.codigo }}</small>
+                    </div></div>
+                  </td>
+                  <td><app-material [nombre]="p.material" [color]="p.colorMaterial" /></td>
+                  <td class="num">{{ fmt.soles(p.precio) }}</td>
+                  <td class="num"><app-medidor [pieza]="p" /></td>
+                  <td><app-estado [estado]="p.estado" /></td>
+                  <td class="actions" (click)="$event.stopPropagation()">
+                    <button type="button" class="icon-btn" title="Registrar entrada o salida"
+                            [attr.aria-label]="'Registrar movimiento de ' + p.nombre" (click)="piezaMovimiento.set(p)">
+                      <app-icono nombre="mover" />
+                    </button>
+                    <a class="icon-btn" [routerLink]="['/inventario', p.codigo, 'editar']" title="Editar"
+                       [attr.aria-label]="'Editar ' + p.nombre"><app-icono nombre="editar" /></a>
+                    <button type="button" class="icon-btn danger" title="Eliminar"
+                            [attr.aria-label]="'Eliminar ' + p.nombre" (click)="piezaEliminar.set(p)">
+                      <app-icono nombre="borrar" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  }
+</div>
+
+@if (piezaMovimiento(); as p) {
+  <app-movimiento-dialogo [pieza]="p" (registrado)="movimientoRegistrado()" (cerrado)="piezaMovimiento.set(null)" />
+}
+
+@if (piezaEliminar(); as p) {
+  <app-confirmar-dialogo titulo="¿Eliminar esta pieza?" [destacado]="p.nombre"
+    mensaje="dejará de aparecer en el inventario. Su historial de movimientos se conserva."
+    [procesando]="eliminando()" [error]="errorEliminar()"
+    (confirmar)="confirmarEliminar()" (cancelar)="cerrarEliminar()" />
+}
